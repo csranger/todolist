@@ -1,0 +1,22 @@
+= Cheatsheets
+
+[[Todo]]
+== Todo
+
+++++
+ 待办事项对象：数据实体对象 - Todo 实体:Todo 实体对象由序号id、标题title、次序order、地址url以及代表待办事项是否完成的一个标识complete组成
+ 注解 @DataObject，这是用于生成JSON转换类的注解：被 @DataObject 注解的实体类需要满足以下条件：拥有一个拷贝构造函数以及一个接受一个 JsonObject 对象的构造函数。
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[completed]]`@completed`|`Boolean`|-
+|[[id]]`@id`|`Number (int)`|-
+|[[order]]`@order`|`Number (Integer)`|-
+|[[title]]`@title`|`String`|-
+|[[url]]`@url`|`String`|-
+|===
+
