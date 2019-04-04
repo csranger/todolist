@@ -19,13 +19,18 @@ dependencies {
     compile 'io.vertx:vertx-core:3.6.3'
     compile 'io.vertx:vertx-web:3.6.3'
     compileOnly 'io.vertx:vertx-codegen:3.6.3'  // 由于Vert.x Codegen仅在编译期生成代码，因此我们这里使用了compileOnly(相当于Maven中的provided)
+    // 使用 Redis
     compile 'io.vertx:vertx-redis-client:3.6.3'
+    // 使用 Mysql
+    compile 'io.vertx:vertx-jdbc-client:3.6.3'
+    compile 'mysql:mysql-connector-java:8.0.14'
 
 
 }
- 
+
 // Vert.x Codegen本质上是一个注解处理器(annotation processing tool)，因此我们还需要在build.gradle中配置
-// 这样，每次我们在编译项目的时候，Vert.x Codegen都会自动检测含有 @DataObject 注解的类并且根据配置生成JSON转换类。在本例中，我们应该会得到一个 TodoConverter 类，然后我们可以在Todo类中使用它。
+// 这样，每次我们在编译项目的时候，Vert.x Codegen都会自动检测含有 @DataObject 注解的类并且根据配置生成JSON转换类。
+// 在本例中，我们应该会得到一个 TodoConverter 类，然后我们可以在Todo类中使用它。
 task annotationProcessing(type: JavaCompile, group: 'build') {
     source = sourceSets.main.java
     classpath = configurations.compile + configurations.compileOnly
@@ -55,10 +60,10 @@ compileJava {
 // 要通过Vert.x Launcher来运行Verticle，我们需要在build.gradle中配置一下
 jar {
     // by default fat jar
-    archiveName = 'tolist-fat.jar'
+    archiveName = 'todolist-fat.jar'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'com.csranger.todolist.verticles.SingleApplicationVerticle'
+        attributes 'Main-Verticle': 'com.csranger.todolist.verticles.TodoVerticle'
     }
 }
