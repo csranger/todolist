@@ -5,6 +5,8 @@ import com.csranger.todolist.entity.Todo;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
 
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
  * 封装 RedisClient service 实现Redis版本的服务
  */
 public class RedisTodoService implements TodoService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(RedisTodoService.class);
 
     private final Vertx vertx;
     private final RedisOptions config;
@@ -29,6 +33,7 @@ public class RedisTodoService implements TodoService {
 
     @Override
     public Future<Boolean> initData() {
+        // initData插入的待办事项的url没有"localhost/",因为没有wrapObject
         return this.insert(new Todo(Math.abs(new java.util.Random().nextInt()),
                 "Something to do...", false, 1, "todo/ex"));
     }
@@ -72,31 +77,22 @@ public class RedisTodoService implements TodoService {
         return result;
     }
 
+    // 好好理解此 update 实现
+    // 顺序组合 Future:compose(mapper)：当前 Future 完成时，执行相关代码，并返回 Future。当返回的 Future 完成时，组合完成。
     @Override
     public Future<Todo> update(String todoId, Todo newTodo) {
+        LOGGER.info("update");
         // 更新待办事项的逻辑，我们会发现它其实是由两个独立的操作组成 - get 和 insert（对于Redis来说）
         // get 查找指定 id 的待办事项，如果存在则使用 insert 方法插入新待办事项；如果id对应的待办事项不存在则返回404
-        Future<Todo> result = Future.future();
-        Future<Optional<Todo>> old = this.getCertain(todoId);
-        if (old.result().isPresent()) {                 // old.result() 返回的是 Optional<Todo>
-            Todo fnTodo = old.result().get().merge(newTodo);           // 得到 Todo
-            Future<Boolean> res = this.insert(newTodo);
-            if (res.result()) result.complete(fnTodo);          // 插入newTodo成功
-            else result.complete(null);                  // 插入newTodo失败
-
-        } else {
-            result.complete(null);
-        }
-        return result;
-//        return this.getCertain(todoId).compose(old -> { // getCertain(todoId)返回的是 Future<Optional<Todo>> 而 old 代表着返回结果中的 Optional<Todo>
-//            if (old.isPresent()) {                     // 1. 查找待办事项存在
-//                Todo fnTodo = old.get().merge(newTodo);
-//                return this.insert(fnTodo)                // 1.1 insert(fnTodo)返回结果 Future<Boolean>
-//                        .map(r -> r ? fnTodo : null);     // 1.2 如果插入的结果成功将 Future<Boolean> 转化成 Future<Todo>
-//            } else {                                  // 2. 查找待办事项不存在
-//                return Future.succeededFuture();
-//            }
-//        });
+        return this.getCertain(todoId).compose(old -> { // getCertain(todoId)返回的是 Future<Optional<Todo>> 而 old 代表着返回结果中的 Optional<Todo>
+            if (old.isPresent()) {                     // 1. 查找待办事项存在
+                Todo fnTodo = old.get().merge(newTodo);
+                return this.insert(fnTodo)                // 1.1 insert(fnTodo)返回结果 Future<Boolean>
+                        .map(r -> r ? fnTodo : null);     // 1.2 如果插入的结果成功将 Future<Boolean> 转化成 Future<Todo>
+            } else {                                  // 2. 查找待办事项不存在
+                return Future.succeededFuture();
+            }
+        });
     }
 
     @Override

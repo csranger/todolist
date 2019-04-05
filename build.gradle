@@ -25,6 +25,10 @@ dependencies {
     compile 'io.vertx:vertx-jdbc-client:3.6.3'
     compile 'mysql:mysql-connector-java:8.0.14'
 
+    // 测试部分，首先引入两个新的测试依赖
+    testCompile 'io.vertx:vertx-unit:3.6.3'
+    testCompile 'junit:junit:4.12'
+
 
 }
 

@@ -88,7 +88,7 @@ public class Todo {
         return new Todo(id,
                 getOrElse(todo.title, title),
                 getOrElse(todo.completed, completed),
-                getOrElse(order, order),
+                getOrElse(todo.order, order),
                 url);
     }
 

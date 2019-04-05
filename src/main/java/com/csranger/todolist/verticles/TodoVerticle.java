@@ -179,6 +179,8 @@ public class TodoVerticle extends AbstractVerticle {
     // 4.更新待办事项的逻辑
     private void handleUpdateTodo(RoutingContext context) {
         try {
+            LOGGER.info("handleUpdateTodo");
+
             String todoId = context.request().getParam("todoId");
             final Todo newTodo = new Todo(context.getBodyAsString());
             // handle error
